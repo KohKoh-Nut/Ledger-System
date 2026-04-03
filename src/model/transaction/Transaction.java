@@ -2,7 +2,7 @@ package model.transaction;
 
 import model.Category;
 import model.Date;
-import model.IdManager;
+import model.util.IdManager;
 import model.InvalidDateException;
 
 /**

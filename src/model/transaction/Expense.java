@@ -7,7 +7,7 @@ import model.Date;
  * Represents a negative cash flow (money spent).
  * Uses static factory methods to manage instantiation via the Transaction base class.
  */
-public class Expense extends Transaction {
+public final class Expense extends Transaction {
 
     /**
      * Private constructor to ensure Expenses are only created through

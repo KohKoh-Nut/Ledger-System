@@ -7,9 +7,7 @@ package model;
  * factory method to enforce validation.
  * </p>
  */
-public class InvalidDateException extends Exception
-{
-    // ----- CONSTRUCTOR -----
+public class InvalidDateException extends Exception {
 
     /**
      * Constructs a new exception with a formatted error message.

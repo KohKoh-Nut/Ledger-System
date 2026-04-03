@@ -1,33 +1,22 @@
 package model;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.WeakHashMap;
+import model.util.FlyweightRegistry;
+import model.util.IdManager;
 
 /**
  * Represents a financial category (e.g., Food, Transport).
  * Implements the Flyweight pattern to ensure memory efficiency by sharing
  * unique Category instances across the application.
  */
-public class Category {
-
-    // ----- ATTRIBUTE -----
+public final class Category {
 
     /**
-     * Maps a unique UUID to the Category object.
+     * Maps a name & a unique UUID to the Category object.
      */
-    private static final Map<String, Category> ID_CAT_POOL = new HashMap<>();
-
-    /**
-     * Maps a display name to its UUID.
-     * Uses WeakHashMap so entries can be garbage collected if the name string is no longer used.
-     */
-    private static final Map<String, String> NAME_ID_POOL = new WeakHashMap<>();
+    private static final FlyweightRegistry<Category> REGISTRY = new FlyweightRegistry<>();
 
     private final String id;
     private String name;
-
-    // ----- CONSTRUCTOR -----
 
     /**
      * Private constructor to enforce the use of the static factory method {@link #of(String)}.
@@ -43,39 +32,15 @@ public class Category {
      * @return A shared Category instance.
      */
     public static synchronized Category of(String name) {
-        Category category = search(name);
+        Category existing = REGISTRY.getByName(name);
+        if (existing != null) return existing;
 
-        // If category doesn't exist in the pool, instantiate and cache it
-        if (category == null) {
-            category = create(name);
-        }
-        return category;
-    }
-
-    /**
-     * Internal helper to generate a new category and register it in both maps.
-     */
-    private static synchronized Category create(String name) {
+        // Create new
         String newId = IdManager.generateUniqueId();
+        Category newCategory = new Category(newId, name.trim());
 
-        Category category = new Category(newId, name);
-
-        // Link the name to the ID, and the ID to the Object
-        NAME_ID_POOL.put(name, newId);
-        ID_CAT_POOL.put(newId, category);
-
-        return category;
-    }
-
-    // ----- CATEGORY-----
-
-    /**
-     * Internal Helper to look up a category in the pool using its name.
-     */
-    private static synchronized Category search(String name) {
-        String key = NAME_ID_POOL.get(name);
-        if (key == null) return null;
-        return ID_CAT_POOL.get(key);
+        REGISTRY.register(name, newId, newCategory);
+        return newCategory;
     }
 
     /**
@@ -83,16 +48,9 @@ public class Category {
      * @param newName The new name for this category.
      */
     public synchronized void rename(String newName) {
-        // Remove old name mapping to prevent wrong lookups
-        NAME_ID_POOL.remove(this.name);
-
-        this.name = newName;
-
-        // Register the new name mapping to the existing ID
-        NAME_ID_POOL.put(newName, this.id);
+        REGISTRY.updateName(this.name, newName, this.id);
+        this.name = newName.trim();
     }
-
-    // ----- GENERAL -----
 
     @Override
     public boolean equals(Object obj) {

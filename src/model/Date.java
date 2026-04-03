@@ -9,7 +9,7 @@ import java.util.HashMap;
  * Implements the Flyweight pattern to ensure memory efficiency by sharing
  * unique Date instances across the application.
  */
-public class Date {
+public final class Date {
 
     /**
      * Maps a day-month-year key to the Date object.
@@ -32,9 +32,9 @@ public class Date {
 
     /**
      * Factory method to retrieve a cached Date or create a new one.
-     * @param day The day of the month.
-     * @param month The month of the year.
-     * @param year The full year.
+     * @param day   The day of the month (1-31).
+     * @param month The month of the year (1-12).
+     * @param year  The full year (e.g., 2026).
      * @return A shared Date instance.
      * @throws InvalidDateException If the combination of day-month-year is not a calendar date
      */
@@ -86,10 +86,10 @@ public class Date {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Date date)) return false;
-        return this.day == date.day &&
-                this.month == date.month &&
-                this.year == date.year;
+        if (!(obj instanceof Date other)) return false;
+        return this.day == other.day &&
+                this.month == other.month &&
+                this.year == other.year;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package model;
+package model.util;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,20 +8,15 @@ import java.util.UUID;
  * Utility class for generating and tracking unique identifiers.
  * Ensures that no two components in the system share the same ID during a single session.
  */
-public class IdManager {
-    // ----- Attributes -----
+public final class IdManager {
 
     /**
      * Global registry of IDs assigned during the current execution.
      */
     private static final Set<String> USED_IDS = new HashSet<>();
 
-    // ----- CONSTRUCTOR -----
-
     // Private constructor prevents instantiation of this utility class
     private IdManager() {}
-
-    // ----- MANAGER -----
 
     /**
      * Generates a cryptographically strong, unique UUID string.

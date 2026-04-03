@@ -7,7 +7,7 @@ import model.Date;
  * Represents a positive cash flow (money earned).
  * Uses static factory methods to manage instantiation via the Transaction base class.
  */
-public class Income extends Transaction {
+public final class Income extends Transaction {
 
     /**
      * Private constructor to ensure Incomes are only created through
@@ -22,7 +22,7 @@ public class Income extends Transaction {
      * @return A new Income instance.
      */
     public static Income of(double amount, int day, int month, int year,
-                             Category category, String description) {
+                            Category category, String description) {
         return Transaction.of(amount, day, month, year, category, description, Income::new);
     }
 
