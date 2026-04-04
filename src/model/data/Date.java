@@ -83,14 +83,28 @@ public final class Date implements Comparable<Date> {
         }
     }
 
+    /**
+     * Checks if this date is strictly before another date.
+     * @param other The date to compare with
+     * @return true if the given date is before this, false if otherwise
+     */
     public boolean before(Date other) {
-        if (this.year != other.year) return this.year > other.year;
-        if (this.month != other.month) return this.month > other.month;
-        return this.day > this.month;
+        if (this.year != other.year) {
+            return this.year < other.year;
+        }
+        if (this.month != other.month) {
+            return this.month < other.month;
+        }
+        return this.day < other.day;
     }
 
+    /**
+     * Checks if this date is strictly after another date.
+     * @param other The date to compare with
+     * @return true if the given date is after this, false if otherwise
+     */
     public boolean after(Date other) {
-        return !this.before(other) && this != other;
+        return !this.before(other) && !this.equals(other);
     }
 
     @Override
