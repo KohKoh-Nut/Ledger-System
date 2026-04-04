@@ -1,7 +1,8 @@
 package model.transaction;
 
 import model.Category;
-import model.Date;
+import model.data.Date;
+import model.InvalidDateException;
 
 /**
  * Represents a negative cash flow (money spent).
@@ -20,17 +21,11 @@ public final class Expense extends Transaction {
     /**
      * Creates an Expense for a specific date.
      * @return A new Expense instance.
+     * @throws InvalidDateException if the date provided is invalid.
      */
     public static Expense of(double amount, int day, int month, int year,
-                             Category category, String description) {
+                             Category category, String description)
+            throws InvalidDateException {
         return Transaction.of(amount, day, month, year, category, description, Expense::new);
-    }
-
-    /**
-     * Creates an Expense using the current system date.
-     * @return A new Expense instance.
-     */
-    public static Expense current(double amount, Category category, String description) {
-        return Transaction.current(amount, category, description, Expense::new);
     }
 }

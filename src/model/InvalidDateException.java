@@ -1,5 +1,7 @@
 package model;
 
+import model.data.Date;
+
 /**
  * Custom exception thrown when a date provided does not exist on the Gregorian calendar.
  * <p>
@@ -7,7 +9,7 @@ package model;
  * factory method to enforce validation.
  * </p>
  */
-public class InvalidDateException extends Exception {
+public final class InvalidDateException extends Exception {
 
     /**
      * Constructs a new exception with a formatted error message.

@@ -1,7 +1,7 @@
 package model.transaction;
 
 import model.Category;
-import model.Date;
+import model.data.Date;
 
 /**
  * Functional interface used by Transaction factories to instantiate subclasses.

@@ -1,14 +1,15 @@
 package model;
 
+import model.data.Date;
+import model.query.Ledger;
+import model.data.Name;
+import model.query.QueryOption;
 import model.transaction.Expense;
 import model.transaction.Income;
 import model.transaction.Transaction;
 import model.transaction.TransactionFactory;
 import model.util.FlyweightRegistry;
 import model.util.IdManager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class Fund {
 
@@ -17,15 +18,15 @@ public final class Fund {
      */
     private static final FlyweightRegistry<Fund> REGISTRY = new FlyweightRegistry<>();
 
-    private static final List<Transaction> transactions = new ArrayList<>();
+    private final Ledger transactions = Ledger.of();
 
     private final String id;
-    private String name;
+    private Name name;
 
     /**
      * Private constructor to enforce the use of the static factory method {@link #of(String)}.
      */
-    private Fund(String id, String name) {
+    private Fund(String id, Name name) {
         this.id = id;
         this.name = name;
     }
@@ -36,14 +37,16 @@ public final class Fund {
      * @return A shared Fund instance.
      */
     public static synchronized Fund of(String name) {
-        Fund existing = REGISTRY.getByName(name);
+        Name normName = Name.of(name);
+
+        Fund existing = REGISTRY.getByName(normName);
         if (existing != null) return existing;
 
         // Create new
         String newId = IdManager.generateUniqueId();
-        Fund newFund = new Fund(newId, name.trim());
+        Fund newFund = new Fund(newId, normName);
 
-        REGISTRY.register(name, newId, newFund);
+        REGISTRY.register(normName, newId, newFund);
         return newFund;
     }
 
@@ -52,17 +55,20 @@ public final class Fund {
      * @param newName The new name for this fund.
      */
     public synchronized void rename(String newName) {
-        REGISTRY.updateName(this.name, newName, this.id);
-        this.name = newName.trim();
+        Name normName = Name.of(newName);
+
+        REGISTRY.updateName(this.name, normName, this.id);
+        this.name = normName;
     }
 
     /**
      * The method that handles object resolution and storage.
-     * @param creator A functional reference to a specific Transaction factory (e.g., Expense::of).
+     * @param creator A functional reference to a specific Transaction factory (e.g., Expense::of).1
      */
     private <T extends Transaction> void addTransaction(double amount, int day, int month, int year,
                                                         String categoryName, String description,
-                                                        TransactionFactory<T> creator) {
+                                                        TransactionFactory<T> creator)
+            throws InvalidDateException {
         Category category = Category.of(categoryName);
         T transaction = creator.create(amount, day, month, year, category, description);
         transactions.add(transaction);
@@ -81,10 +87,26 @@ public final class Fund {
      * @param year         The full year (e.g., 2026).
      * @param categoryName The name of the category; automatically resolved to a shared instance.
      * @param description  A brief note describing the transaction.
+     * @throws InvalidDateException if the date provided is invalid.
      */
     public void addExpense(double amount, int day, int month, int year,
-                           String categoryName, String description) {
+                           String categoryName, String description)
+            throws InvalidDateException {
         addTransaction(amount, day, month, year, categoryName, description, Expense::of);
+    }
+
+    /**
+     * Records an expense occurring today.
+     * <p>
+     * This is a convenience overload that automatically resolves the date
+     * using {@link Date#current()}.
+     * </p>
+     * @see #addExpense(double, int, int, int, String, String)
+     */
+    public void addExpense(double amount, String categoryName, String description)
+            throws InvalidDateException {
+        addExpense(amount, Date.current().day, Date.current().month, Date.current().year,
+                categoryName, description);
     }
 
     /**
@@ -100,9 +122,25 @@ public final class Fund {
      * @param year         The full year (e.g., 2026).
      * @param categoryName The name of the category; automatically resolved to a shared instance.
      * @param description  A brief note describing the transaction.
+     * @throws InvalidDateException if the date provided is invalid.
      */
-    public void addIncome(double amount, int day, int month, int year, String categoryName, String description) {
+    public void addIncome(double amount, int day, int month, int year, String categoryName, String description)
+            throws InvalidDateException {
         addTransaction(amount, day, month, year, categoryName, description, Income::of);
+    }
+
+    /**
+     * Records an income occurring today.
+     * <p>
+     * This is a convenience overload that automatically resolves the date
+     * using {@link Date#current()}.
+     * </p>
+     * @see #addIncome(double, int, int, int, String, String)
+     */
+    public void addIncome(double amount, String categoryName, String description)
+            throws InvalidDateException {
+        addIncome(amount, Date.current().day, Date.current().month, Date.current().year,
+                categoryName, description);
     }
 
     /**
@@ -120,9 +158,11 @@ public final class Fund {
      * @param categoryName The name of the category; automatically resolved to a shared instance.
      * @param fundName     The name of the destination fund; automatically resolved to a shared instance.
      * @param description  A brief note describing the transaction.
+     * @throws InvalidDateException if the date provided is invalid.
      */
     public void addTransfer(double amount, int day, int month, int year,
-                            String categoryName, String fundName, String description) {
+                            String categoryName, String fundName, String description)
+            throws InvalidDateException {
         // Record the outflow from the current fund
         addExpense(amount, day, month, year, categoryName,
                 String.format("%s (To: %s)", description, fundName));
@@ -135,17 +175,23 @@ public final class Fund {
                 String.format("%s (From: %s)", description, fundName));
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Fund other)) return false;
-        return this.id.equals(other.id);
+    /**
+     * Records a transfer occurring today.
+     * <p>
+     * This is a convenience overload that automatically resolves the date
+     * using {@link Date#current()}.
+     * </p>
+     * @see #addTransfer(double, int, int, int, String, String, String)
+     */
+    public void addTransfer(double amount, String categoryName, String fundName, String description)
+            throws InvalidDateException {
+        addTransfer(amount, Date.current().day, Date.current().month, Date.current().year,
+                categoryName, fundName, description);
     }
 
-    @Override
-    public int hashCode() {
-        // Objects.hash handles null safety and distribution for you
-        return java.util.Objects.hash(id);
+    public String getHistory(QueryOption ... options) {
+        Ledger queried = transactions.query(options);
+        return this + "\n" + queried;
     }
 
     @Override

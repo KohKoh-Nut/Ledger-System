@@ -1,8 +1,9 @@
 package model.util;
 
-import java.util.HashMap;
+import model.data.Name;
+
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A generic registry for managing shared object instances (Flyweights).
@@ -14,14 +15,12 @@ public final class FlyweightRegistry<T> {
     /**
      * Primary storage: Maps a unique ID to the shared object instance.
      */
-    private final Map<String, T> idToObj = new HashMap<>();
+    private final Map<String, T> idToObj = new ConcurrentHashMap<>();
 
     /**
      * Secondary lookup: Maps a display name to its unique ID.
-     * Uses WeakHashMap to allow the name mapping to be garbage collected
-     * if the name string is no longer referenced elsewhere.
      */
-    private final Map<String, String> nameToId = new WeakHashMap<>();
+    private final Map<String, String> nameToId = new ConcurrentHashMap<>();
 
     /**
      * Registers a new object and its associated name-ID mapping in the pool.
@@ -29,8 +28,8 @@ public final class FlyweightRegistry<T> {
      * @param id     The unique identifier for the object.
      * @param object The shared instance to be stored.
      */
-    public void register(String name, String id, T object) {
-        nameToId.put(name.trim(), id);
+    public void register(Name name, String id, T object) {
+        nameToId.put(name.toString(), id);
         idToObj.put(id, object);
     }
 
@@ -39,8 +38,8 @@ public final class FlyweightRegistry<T> {
      * @param name The name to search for.
      * @return The shared object instance, or null if no mapping exists.
      */
-    public T getByName(String name) {
-        String id = nameToId.get(name.trim());
+    public T getByName(Name name) {
+        String id = nameToId.get(name.toString());
         return id == null ? null : idToObj.get(id);
     }
 
@@ -50,8 +49,8 @@ public final class FlyweightRegistry<T> {
      * @param newName The new name to be registered.
      * @param id      The unique ID associated with the object.
      */
-    public void updateName(String oldName, String newName, String id) {
-        nameToId.remove(oldName.trim());
-        nameToId.put(newName.trim(), id);
+    public void updateName(Name oldName, Name newName, String id) {
+        nameToId.remove(oldName.toString());
+        nameToId.put(newName.toString(), id);
     }
 }

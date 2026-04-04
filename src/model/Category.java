@@ -1,5 +1,6 @@
 package model;
 
+import model.data.Name;
 import model.util.FlyweightRegistry;
 import model.util.IdManager;
 
@@ -8,7 +9,7 @@ import model.util.IdManager;
  * Implements the Flyweight pattern to ensure memory efficiency by sharing
  * unique Category instances across the application.
  */
-public final class Category {
+public final class Category implements Comparable<Category> {
 
     /**
      * Maps a name & a unique UUID to the Category object.
@@ -16,12 +17,12 @@ public final class Category {
     private static final FlyweightRegistry<Category> REGISTRY = new FlyweightRegistry<>();
 
     private final String id;
-    private String name;
+    private Name name;
 
     /**
      * Private constructor to enforce the use of the static factory method {@link #of(String)}.
      */
-    private Category(String id, String name) {
+    private Category(String id, Name name) {
         this.id = id;
         this.name = name;
     }
@@ -32,14 +33,16 @@ public final class Category {
      * @return A shared Category instance.
      */
     public static synchronized Category of(String name) {
-        Category existing = REGISTRY.getByName(name);
+        Name normName = Name.of(name);
+
+        Category existing = REGISTRY.getByName(normName);
         if (existing != null) return existing;
 
         // Create new
         String newId = IdManager.generateUniqueId();
-        Category newCategory = new Category(newId, name.trim());
+        Category newCategory = new Category(newId, normName);
 
-        REGISTRY.register(name, newId, newCategory);
+        REGISTRY.register(normName, newId, newCategory);
         return newCategory;
     }
 
@@ -48,25 +51,19 @@ public final class Category {
      * @param newName The new name for this category.
      */
     public synchronized void rename(String newName) {
-        REGISTRY.updateName(this.name, newName, this.id);
-        this.name = newName.trim();
+        Name normName = Name.of(newName);
+
+        REGISTRY.updateName(this.name, normName, this.id);
+        this.name = normName;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Category other)) return false;
-        return this.id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        // Objects.hash handles null safety and distribution for you
-        return java.util.Objects.hash(id);
+    public int compareTo(Category other) {
+        return this.name.compareTo(other.name);
     }
 
     @Override
     public String toString() {
-        return String.format("%s (%s)", name, id);
+        return String.format("%-20s", name.truncate(20));
     }
 }

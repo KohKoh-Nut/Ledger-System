@@ -1,4 +1,6 @@
-package model;
+package model.data;
+
+import model.InvalidDateException;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -9,16 +11,16 @@ import java.util.HashMap;
  * Implements the Flyweight pattern to ensure memory efficiency by sharing
  * unique Date instances across the application.
  */
-public final class Date {
+public final class Date implements Comparable<Date> {
 
     /**
      * Maps a day-month-year key to the Date object.
      */
     private static final Map<String, Date> KEY_DATE_POOL = new HashMap<>();
 
-    private final int day;
-    private final int month;
-    private final int year;
+    public final int day;
+    public final int month;
+    public final int year;
 
     /**
      * Private constructor to enforce the use of the static factory method
@@ -38,7 +40,8 @@ public final class Date {
      * @return A shared Date instance.
      * @throws InvalidDateException If the combination of day-month-year is not a calendar date
      */
-    public static synchronized Date of(int day, int month, int year) throws InvalidDateException {
+    public static synchronized Date of(int day, int month, int year)
+            throws InvalidDateException {
         String key = String.format("%d-%d-%d", day, month, year);
         Date date = KEY_DATE_POOL.get(key);
 
@@ -56,19 +59,16 @@ public final class Date {
     /**
      * Factory method to retrieve a cached current Date or create a new one.
      * @return A shared Date instance.
+     * @throws InvalidDateException if the system date is invalid.
      */
-    public static Date current() {
-        try {
-            LocalDate now = LocalDate.now();
-            int day = now.getDayOfMonth();
-            int month = now.getMonthValue();
-            int year = now.getYear();
+    public static Date current()
+            throws InvalidDateException {
+        LocalDate now = LocalDate.now();
+        int day = now.getDayOfMonth();
+        int month = now.getMonthValue();
+        int year = now.getYear();
 
-            return of(day, month, year);
-        } catch (InvalidDateException e) {
-            // This should technically be unreachable
-            throw new RuntimeException("System clock provided an invalid date", e);
-        }
+        return of(day, month, year);
     }
 
     /**
@@ -83,22 +83,25 @@ public final class Date {
         }
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Date other)) return false;
-        return this.day == other.day &&
-                this.month == other.month &&
-                this.year == other.year;
+    public boolean before(Date other) {
+        if (this.year != other.year) return this.year > other.year;
+        if (this.month != other.month) return this.month > other.month;
+        return this.day > this.month;
+    }
+
+    public boolean after(Date other) {
+        return !this.before(other) && this != other;
     }
 
     @Override
-    public int hashCode() {
-        return java.util.Objects.hash(day, month, year);
+    public int compareTo(Date other) {
+        if (this.year != other.year) return Integer.compare(this.year, other.year);
+        if (this.month != other.month) return Integer.compare(this.month, other.month);
+        return Integer.compare(this.day, other.day);
     }
 
     @Override
     public String toString() {
-        return String.format("%d-%d-%d", day, month, year);
+        return String.format("%2d-%2d-%4d", day, month, year);
     }
 }

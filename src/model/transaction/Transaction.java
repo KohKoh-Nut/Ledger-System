@@ -1,7 +1,7 @@
 package model.transaction;
 
 import model.Category;
-import model.Date;
+import model.data.Date;
 import model.util.IdManager;
 import model.InvalidDateException;
 
@@ -31,31 +31,53 @@ public abstract class Transaction {
     /**
      * Generic factory helper to create specific transaction types with a custom date.
      * @param creator A functional interface (lambda) that calls the specific subclass constructor.
-     * @throws RuntimeException if the date provided is invalid.
+     * @throws InvalidDateException if the date provided is invalid.
      */
     protected static <T extends Transaction> T of(double amount, int day, int month, int year,
                                                   Category category, String description,
-                                                  TransactionCreator<T> creator) {
-        try {
-            return creator.create(amount, Date.of(day, month, year), category, description);
-        } catch (InvalidDateException e) {
-            // Unrecoverable at this level; promotes to runtime exception
-            throw new RuntimeException(e);
-        }
+                                                  TransactionCreator<T> creator)
+            throws InvalidDateException {
+        return creator.create(amount, Date.of(day, month, year), category, description);
     }
 
     /**
-     * Generic factory helper to create specific transaction types using the current system date.
+     * Returns the date this transaction occurred.
+     *
+     * @return A {@code Date} instance representing the point in time of this entry.
      */
-    protected static <T extends Transaction> T current(double amount, Category category,
-                                                       String description, TransactionCreator<T> creator) {
-        return creator.create(amount, Date.current(), category, description);
+    public Date getDate() {
+        return this.timestamp;
+    }
+
+    /**
+     * Returns the monetary value of this transaction.
+     * <p>
+     * Positive values typically represent Income, while negative values represent Expenses.
+     * </p>
+     *
+     * @return The raw double value of the transaction.
+     */
+    public double getAmount() {
+        return this.amount;
+    }
+
+    /**
+     * Returns the category associated with this transaction.
+     * <p>
+     * This returns a Flyweight {@code Category} instance from the Registry to ensure
+     * memory efficiency and consistent identity.
+     * </p>
+     *
+     * @return The categorized label for this transaction.
+     */
+    public Category getCategory() {
+        return this.category;
     }
 
     @Override
     public String toString() {
         // Updated to %.2f for standard currency formatting
-        return String.format("[%s] %s | %.2f | %s (Ref: %s)",
-                timestamp, category, amount, description, id);
+        return String.format("[%s] %s | %1s%10.2f | %s",
+                timestamp, category, this instanceof Income ? "" : "-", amount, description);
     }
 }

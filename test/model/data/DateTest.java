@@ -1,8 +1,8 @@
-package model;
+package model.data;
 
+import model.InvalidDateException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 

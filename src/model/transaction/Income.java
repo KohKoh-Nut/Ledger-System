@@ -1,7 +1,8 @@
 package model.transaction;
 
 import model.Category;
-import model.Date;
+import model.data.Date;
+import model.InvalidDateException;
 
 /**
  * Represents a positive cash flow (money earned).
@@ -20,17 +21,11 @@ public final class Income extends Transaction {
     /**
      * Creates an Income for a specific date.
      * @return A new Income instance.
+     * @throws InvalidDateException if the date provided is invalid.
      */
     public static Income of(double amount, int day, int month, int year,
-                            Category category, String description) {
+                            Category category, String description)
+            throws InvalidDateException {
         return Transaction.of(amount, day, month, year, category, description, Income::new);
-    }
-
-    /**
-     * Creates an Income using the current system date.
-     * @return A new Income instance.
-     */
-    public static Income current(double amount, Category category, String description) {
-        return Transaction.current(amount, category, description, Income::new);
     }
 }
