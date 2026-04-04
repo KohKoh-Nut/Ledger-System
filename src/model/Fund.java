@@ -1,5 +1,6 @@
 package model;
 
+import model.data.Amount;
 import model.data.Date;
 import model.query.Ledger;
 import model.data.Name;
@@ -7,7 +8,7 @@ import model.query.QueryOption;
 import model.transaction.Expense;
 import model.transaction.Income;
 import model.transaction.Transaction;
-import model.transaction.TransactionFactory;
+import model.transaction.TransactionCreator;
 import model.util.FlyweightRegistry;
 import model.util.IdManager;
 
@@ -65,12 +66,9 @@ public final class Fund {
      * The method that handles object resolution and storage.
      * @param creator A functional reference to a specific Transaction factory (e.g., Expense::of).1
      */
-    private <T extends Transaction> void addTransaction(double amount, int day, int month, int year,
-                                                        String categoryName, String description,
-                                                        TransactionFactory<T> creator)
-            throws InvalidDateException {
-        Category category = Category.of(categoryName);
-        T transaction = creator.create(amount, day, month, year, category, description);
+    private <T extends Transaction> void addTransaction(Amount amount, Date date, Category category,
+                                                        String description, TransactionCreator<T> creator) {
+        T transaction = creator.create(amount, date, category, description);
         transactions.add(transaction);
     }
 
@@ -81,32 +79,13 @@ public final class Fund {
      * category name into a Flyweight instance and delegating the instantiation
      * to the {@link Expense} factory.
      * </p>
-     * @param amount       The monetary value of the expense.
-     * @param day          The day of the month (1-31).
-     * @param month        The month of the year (1-12).
-     * @param year         The full year (e.g., 2026).
-     * @param categoryName The name of the category; automatically resolved to a shared instance.
+     * @param amount       The amount of the expense.
+     * @param date         The date that the transfer occurred.
+     * @param category     The category.
      * @param description  A brief note describing the transaction.
-     * @throws InvalidDateException if the date provided is invalid.
      */
-    public void addExpense(double amount, int day, int month, int year,
-                           String categoryName, String description)
-            throws InvalidDateException {
-        addTransaction(amount, day, month, year, categoryName, description, Expense::of);
-    }
-
-    /**
-     * Records an expense occurring today.
-     * <p>
-     * This is a convenience overload that automatically resolves the date
-     * using {@link Date#current()}.
-     * </p>
-     * @see #addExpense(double, int, int, int, String, String)
-     */
-    public void addExpense(double amount, String categoryName, String description)
-            throws InvalidDateException {
-        addExpense(amount, Date.current().day, Date.current().month, Date.current().year,
-                categoryName, description);
+    public void addExpense(Amount amount, Date date, Category category, String description) {
+        addTransaction(amount, date, category, description, Expense::of);
     }
 
     /**
@@ -116,31 +95,13 @@ public final class Fund {
      * category name into a Flyweight instance and delegating the instantiation
      * to the {@link Income} factory.
      * </p>
-     * @param amount       The monetary value of the income.
-     * @param day          The day of the month (1-31).
-     * @param month        The month of the year (1-12).
-     * @param year         The full year (e.g., 2026).
-     * @param categoryName The name of the category; automatically resolved to a shared instance.
+     * @param amount       The amount of the income.
+     * @param date         The date that the transfer occurred.
+     * @param category     The category.
      * @param description  A brief note describing the transaction.
-     * @throws InvalidDateException if the date provided is invalid.
      */
-    public void addIncome(double amount, int day, int month, int year, String categoryName, String description)
-            throws InvalidDateException {
-        addTransaction(amount, day, month, year, categoryName, description, Income::of);
-    }
-
-    /**
-     * Records an income occurring today.
-     * <p>
-     * This is a convenience overload that automatically resolves the date
-     * using {@link Date#current()}.
-     * </p>
-     * @see #addIncome(double, int, int, int, String, String)
-     */
-    public void addIncome(double amount, String categoryName, String description)
-            throws InvalidDateException {
-        addIncome(amount, Date.current().day, Date.current().month, Date.current().year,
-                categoryName, description);
+    public void addIncome(Amount amount, Date date, Category category, String description) {
+        addTransaction(amount, date, category, description, Income::of);
     }
 
     /**
@@ -151,51 +112,39 @@ public final class Fund {
      * to the destination fund.
      * </p>
      *
-     * @param amount       The monetary value of the income.
-     * @param day          The day of the month (1-31).
-     * @param month        The month of the year (1-12).
-     * @param year         The full year (e.g., 2026).
-     * @param categoryName The name of the category; automatically resolved to a shared instance.
-     * @param fundName     The name of the destination fund; automatically resolved to a shared instance.
+     * @param amount       The amount of the income.
+     * @param date         The date that the transfer occurred.
+     * @param category     The category.
+     * @param fund         The destination fund.
      * @param description  A brief note describing the transaction.
-     * @throws InvalidDateException if the date provided is invalid.
      */
-    public void addTransfer(double amount, int day, int month, int year,
-                            String categoryName, String fundName, String description)
-            throws InvalidDateException {
+    public void addTransfer(Amount amount, Date date, Category category, Fund fund,String description) {
         // Record the outflow from the current fund
-        addExpense(amount, day, month, year, categoryName,
-                String.format("%s (To: %s)", description, fundName));
-
-        // Resolve the target fund instance
-        Fund targetFund = Fund.of(fundName);
+        this.addExpense(amount, date, category,
+                String.format("%s (To: %s)", description, fund));
 
         // Record the inflow to the target fund
-        targetFund.addIncome(amount, day, month, year, categoryName,
-                String.format("%s (From: %s)", description, fundName));
+        fund.addIncome(amount, date, category,
+                String.format("%s (From: %s)", description, this));
     }
 
     /**
-     * Records a transfer occurring today.
+     * Generates a formatted report of the fund's transaction history.
      * <p>
-     * This is a convenience overload that automatically resolves the date
-     * using {@link Date#current()}.
+     * This method applies the provided {@code QueryOption} filters to the ledger,
+     * calculates the net balance of the resulting subset, and returns a
+     * string representation including the fund's identity header.
      * </p>
-     * @see #addTransfer(double, int, int, int, String, String, String)
+     * @param options Variadic array of filters (e.g., date range, category).
+     * @return A formatted string showing: [Fund Name] | [Net Sum] \n [Transactions].
      */
-    public void addTransfer(double amount, String categoryName, String fundName, String description)
-            throws InvalidDateException {
-        addTransfer(amount, Date.current().day, Date.current().month, Date.current().year,
-                categoryName, fundName, description);
-    }
-
     public String getHistory(QueryOption ... options) {
         Ledger queried = transactions.query(options);
-        return this + "\n" + queried;
+        return String.format("%s | %.2f \n%s", this, queried.sum(), queried);
     }
 
     @Override
     public String toString() {
-        return String.format("%s (%s)", name, id);
+        return String.format("%s", name);
     }
 }

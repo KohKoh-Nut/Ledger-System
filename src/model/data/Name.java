@@ -11,7 +11,8 @@ public final class Name implements Comparable<Name> {
     private final String name;
 
     /**
-     * Private constructor to enforce the use of the static factory method.
+     * Private constructor to enforce the use of the static factory method
+     * {@link #of(String)} or {@link #of(String, int)}.
      */
     private Name(String name) {
         this.name = name;

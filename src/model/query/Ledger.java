@@ -1,5 +1,6 @@
 package model.query;
 
+import model.transaction.Income;
 import model.transaction.Transaction;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,17 @@ public final class Ledger {
 
         // Returns a new Ledger instance, maintaining the functional chain
         return Ledger.of(s.toList());
+    }
+
+    /**
+     * Computes the net balance in a single stream pass.
+     * Expenses are treated as negative values, Income as positive.
+     * @return The net total (Income - Expenses).
+     */
+    public double sum() {
+        return transactions.stream()
+                .mapToDouble(t -> t instanceof Income ? t.getAmount().getAmount() : -t.getAmount().getAmount())
+                .sum();
     }
 
     @Override

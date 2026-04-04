@@ -19,7 +19,7 @@ import java.util.stream.Stream;
  * filtering and sorting logic into reusable, composable objects.
  * </p>
  */
-public final class QueryOption implements TransactionQuery{
+public final class QueryOption implements TransactionQuery {
 
     /**
      * Constants representing "Natural" or fixed operations.
@@ -67,7 +67,7 @@ public final class QueryOption implements TransactionQuery{
      * @return A {@code QueryOption} that filters for amount >= threshold.
      */
     public static QueryOption min(double amount) {
-        return of(s -> s.filter(t -> t.getAmount() >= amount));
+        return of(s -> s.filter(t -> t.getAmount().getAmount() >= amount));
     }
 
     /**
@@ -76,7 +76,7 @@ public final class QueryOption implements TransactionQuery{
      * @return A {@code QueryOption} that filters for amount <= threshold.
      */
     public static QueryOption max(double amount) {
-        return of(s -> s.filter(t -> t.getAmount() <= amount));
+        return of(s -> s.filter(t -> t.getAmount().getAmount() <= amount));
     }
 
     /**
@@ -117,7 +117,8 @@ public final class QueryOption implements TransactionQuery{
      * @return A {@code QueryOption} that acts as a whitelist for the given categories.
      */
     public static QueryOption cat(String ... categoriesName) {
-        Set<Category> included = Set.of(categoriesName)
+        Set<Category> included = Set
+                .of(categoriesName)
                 .stream()
                 .map(Category::of)
                 .collect(Collectors.toSet());
@@ -132,7 +133,8 @@ public final class QueryOption implements TransactionQuery{
      * @return A {@code QueryOption} that acts as a blacklist for the given categories.
      */
     public static QueryOption notCat(String ... categoriesName) {
-        Set<Category> excluded = Set.of(categoriesName)
+        Set<Category> excluded = Set
+                .of(categoriesName)
                 .stream()
                 .map(Category::of)
                 .collect(Collectors.toSet());

@@ -84,9 +84,9 @@ public final class Date implements Comparable<Date> {
     }
 
     /**
-     * Checks if this date is strictly before another date.
-     * @param other The date to compare with
-     * @return true if the given date is before this, false if otherwise
+     * Checks if this date is strictly before given date.
+     * @param other The date to compare with.
+     * @return true if the given date is before this, false if otherwise.
      */
     public boolean before(Date other) {
         if (this.year != other.year) {
@@ -99,9 +99,9 @@ public final class Date implements Comparable<Date> {
     }
 
     /**
-     * Checks if this date is strictly after another date.
+     * Checks if this date is strictly after given date.
      * @param other The date to compare with
-     * @return true if the given date is after this, false if otherwise
+     * @return true if the given date is after this, false if otherwise.
      */
     public boolean after(Date other) {
         return !this.before(other) && !this.equals(other);

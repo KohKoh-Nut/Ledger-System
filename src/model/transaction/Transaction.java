@@ -1,9 +1,9 @@
 package model.transaction;
 
 import model.Category;
+import model.data.Amount;
 import model.data.Date;
 import model.util.IdManager;
-import model.InvalidDateException;
 
 /**
  * Abstract base for all financial records (Income, Expense).
@@ -12,7 +12,7 @@ import model.InvalidDateException;
 public abstract class Transaction {
 
     private final String id;
-    private final double amount;
+    private final Amount amount;
     private final Date timestamp;
     private final Category category;
     private final String description;
@@ -20,7 +20,7 @@ public abstract class Transaction {
     /**
      * Standard constructor for subclasses. Generates a unique ID automatically.
      */
-    protected Transaction(double amount, Date timestamp, Category category, String description) {
+    protected Transaction(Amount amount, Date timestamp, Category category, String description) {
         this.id = IdManager.generateUniqueId();
         this.amount = amount;
         this.timestamp = timestamp;
@@ -31,13 +31,10 @@ public abstract class Transaction {
     /**
      * Generic factory helper to create specific transaction types with a custom date.
      * @param creator A functional interface (lambda) that calls the specific subclass constructor.
-     * @throws InvalidDateException if the date provided is invalid.
      */
-    protected static <T extends Transaction> T of(double amount, int day, int month, int year,
-                                                  Category category, String description,
-                                                  TransactionCreator<T> creator)
-            throws InvalidDateException {
-        return creator.create(amount, Date.of(day, month, year), category, description);
+    protected static <T extends Transaction> T of(Amount amount, Date date, Category category,
+                                                  String description, TransactionCreator<T> creator) {
+        return creator.create(amount, date, category, description);
     }
 
     /**
@@ -55,9 +52,9 @@ public abstract class Transaction {
      * Positive values typically represent Income, while negative values represent Expenses.
      * </p>
      *
-     * @return The raw double value of the transaction.
+     * @return The Amount of the transaction.
      */
-    public double getAmount() {
+    public Amount getAmount() {
         return this.amount;
     }
 
@@ -76,8 +73,7 @@ public abstract class Transaction {
 
     @Override
     public String toString() {
-        // Updated to %.2f for standard currency formatting
-        return String.format("[%s] %s | %1s%10.2f | %s",
+        return String.format("[%s] %s | %1s %s | %s",
                 timestamp, category, this instanceof Income ? "" : "-", amount, description);
     }
 }
