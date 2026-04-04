@@ -9,6 +9,7 @@ import model.transaction.Transaction;
 
 import java.util.Comparator;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -54,7 +55,7 @@ public final class QueryOption implements TransactionQuery{
     /**
      * Private factory method to enforce the use of the static factory method
      * {@link #min(double)}, {@link #max(double)}, {@link #before(int, int, int)}, {@link #after(int, int, int)},
-     * {@link #cat(Category...)}, {@link #notCat(Category...)}.
+     * {@link #cat(String...)}, {@link #notCat(String...)}.
      */
     private static QueryOption of(TransactionQuery query) {
         return new QueryOption(query);
@@ -112,11 +113,14 @@ public final class QueryOption implements TransactionQuery{
      * Filters transactions by a variable list of categories.
      * Uses a HashSet internally for O(1) membership checking.
      *
-     * @param categories The categories to include in the result.
+     * @param categoriesName The categories name to include in the result.
      * @return A {@code QueryOption} that acts as a whitelist for the given categories.
      */
-    public static QueryOption cat(Category ... categories) {
-        Set<Category> included = Set.of(categories);
+    public static QueryOption cat(String ... categoriesName) {
+        Set<Category> included = Set.of(categoriesName)
+                .stream()
+                .map(Category::of)
+                .collect(Collectors.toSet());
         return of(s -> s.filter(t -> included.contains(t.getCategory())));
     }
 
@@ -124,11 +128,14 @@ public final class QueryOption implements TransactionQuery{
      * Filters transactions by a variable list of categories.
      * Uses a HashSet internally for O(1) membership checking.
      *
-     * @param categories The categories to exclude in the result.
+     * @param categoriesName The categories name to exclude in the result.
      * @return A {@code QueryOption} that acts as a blacklist for the given categories.
      */
-    public static QueryOption notCat(Category ... categories) {
-        Set<Category> excluded = Set.of(categories);
+    public static QueryOption notCat(String ... categoriesName) {
+        Set<Category> excluded = Set.of(categoriesName)
+                .stream()
+                .map(Category::of)
+                .collect(Collectors.toSet());
         return of(s -> s.filter(t -> !excluded.contains(t.getCategory())));
     }
 
