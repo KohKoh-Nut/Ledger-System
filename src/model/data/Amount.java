@@ -9,10 +9,10 @@ package model.data;
  * </p>
  */
 public final class Amount implements Comparable<Amount> {
-
+    
     private final double amount;
     private final Currency currency;
-
+    
     /**
      * Private constructor to enforce the use of the static factory method {@link #of(double, Currency)}.
      */
@@ -20,9 +20,10 @@ public final class Amount implements Comparable<Amount> {
         this.amount = amount;
         this.currency = currency;
     }
-
+    
     /**
      * Static factory method for creating Amount instances.
+     *
      * @param amount   The numerical value of the money.
      * @param currency The {@link Currency} type.
      * @return A new immutable {@code Amount} instance.
@@ -30,18 +31,22 @@ public final class Amount implements Comparable<Amount> {
     public static Amount of(double amount, Currency currency) {
         return new Amount(amount, currency);
     }
-
+    
     /**
      * Supported currency types within the system.
      */
     public enum Currency {
-        MYR, SGD, USD;
+        MYR, SGD, USD
     }
-
+    
     public double getAmount() {
         return this.amount;
     }
-
+    
+    public Currency getCurrency() {
+        return this.currency;
+    }
+    
     /**
      * Compares this amount with another based on their numerical values.
      * <p>
@@ -49,6 +54,7 @@ public final class Amount implements Comparable<Amount> {
      * multi-currency system, this would ideally use an exchange rate
      * provider to normalize values before comparison.
      * </p>
+     *
      * @param other The other {@code Amount} to compare against.
      * @return A negative integer, zero, or a positive integer as this
      * amount is less than, equal to, or greater than the specified amount.
@@ -58,7 +64,7 @@ public final class Amount implements Comparable<Amount> {
         // Double.compare is safer than (this - other) due to precision/NaN issues
         return Double.compare(this.amount, other.amount);
     }
-
+    
     @Override
     public String toString() {
         return String.format("%s%10.2f", currency.name(), amount);

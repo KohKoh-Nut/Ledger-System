@@ -1,7 +1,6 @@
 package model.transaction;
 
 import model.Category;
-import model.InvalidDateException;
 import model.data.Amount;
 import model.data.Date;
 

@@ -10,13 +10,13 @@ import model.util.IdManager;
  * Centralizes common attributes like amount, category, and unique tracking IDs.
  */
 public abstract class Transaction {
-
+    
     private final String id;
     private final Amount amount;
     private final Date timestamp;
     private final Category category;
     private final String description;
-
+    
     /**
      * Standard constructor for subclasses. Generates a unique ID automatically.
      */
@@ -27,16 +27,17 @@ public abstract class Transaction {
         this.category = category;
         this.description = description;
     }
-
+    
     /**
      * Generic factory helper to create specific transaction types with a custom date.
+     *
      * @param creator A functional interface (lambda) that calls the specific subclass constructor.
      */
     protected static <T extends Transaction> T of(Amount amount, Date date, Category category,
                                                   String description, TransactionCreator<T> creator) {
         return creator.create(amount, date, category, description);
     }
-
+    
     /**
      * Returns the date this transaction occurred.
      *
@@ -45,7 +46,7 @@ public abstract class Transaction {
     public Date getDate() {
         return this.timestamp;
     }
-
+    
     /**
      * Returns the monetary value of this transaction.
      * <p>
@@ -57,7 +58,7 @@ public abstract class Transaction {
     public Amount getAmount() {
         return this.amount;
     }
-
+    
     /**
      * Returns the category associated with this transaction.
      * <p>
@@ -70,10 +71,10 @@ public abstract class Transaction {
     public Category getCategory() {
         return this.category;
     }
-
+    
     @Override
     public String toString() {
         return String.format("[%s] %s | %1s %s | %s",
-                timestamp, category, this instanceof Income ? "" : "-", amount, description);
+                             timestamp, category, this instanceof Income ? "" : "-", amount, description);
     }
 }

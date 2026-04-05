@@ -12,7 +12,7 @@ import model.query.QueryOption;
  * The output can be edited to test sorting & filtering.
  */
 public class Demo1 {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         Fund f1 = Fund.of("allowance SGD");
         Fund f2 = Fund.of("Savings MYR");
         Fund f3 = Fund.of("saviNgs sgd");
@@ -117,7 +117,9 @@ public class Demo1 {
         
         for (Fund f : funds) {
             System.out.println(f.getHistory(
-                    QueryOption.SORT_BY_DATE
+                    QueryOption.sort(QueryOption.BY_DATE_DESCENDING, QueryOption.BY_AMOUNT),
+                    QueryOption.filterAny(QueryOption.cat(Category.of("savingS")),
+                                          QueryOption.max(Amount.of(5, Amount.Currency.SGD)))
             ));
         }
     }

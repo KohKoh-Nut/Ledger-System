@@ -10,14 +10,14 @@ import model.data.Date;
  * </p>
  */
 public final class InvalidDateException extends Exception {
-
+    
     /**
      * Constructs a new exception with a formatted error message.
      * * @param date The string representation of the invalid date that triggered the error.
      */
-    public InvalidDateException(String date)
-    {
+    public InvalidDateException(String date) {
         super(String.format("The provided date '%s' is not a valid calendar date. " +
-                "Please ensure it follows the (DD/MM/YYYY) format and exists (e.g., no Feb 30).", date));
+                                    "Please ensure it follows the (DD/MM/YYYY) format and exists (e.g., no Feb 30).",
+                            date));
     }
 }
