@@ -1,6 +1,8 @@
 package model.data;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -8,6 +10,12 @@ import java.util.stream.Collectors;
  * Automatically converts input to Title Case (e.g., "fast food" -> "Fast Food").
  */
 public final class Name implements Comparable<Name> {
+    
+    /**
+     * Maps a name key to the Name object.
+     */
+    private static final Map<String, Name> KEY_NAME_POOL = new HashMap<>();
+    
     private final String name;
     
     /**
@@ -19,18 +27,18 @@ public final class Name implements Comparable<Name> {
     }
     
     /**
-     * Factory method that creates a normalized Name instance.
+     * Factory method that cached or creates a normalized Name instance.
      * <p>
      * It splits the input by whitespace, capitalizes the first letter of each word,
      * and joins them back with a single space.
      * </p>
      *
      * @param name The raw string input from the user or database.
-     * @return A new Name instance with Title Case formatting.
+     * @return A shared Name instance with Title Case formatting.
      */
     public static Name of(String name) {
         if (name == null || name.isBlank())
-            return new Name("_");
+            return of("_");
         
         // Stream pipeline: Split -> Capitalize -> Join
         String result = Arrays.stream(name.split("\\s+")) // Split by any whitespace
@@ -41,7 +49,7 @@ public final class Name implements Comparable<Name> {
                                           .toLowerCase()) // Force Title Case
                               .collect(Collectors.joining(" "));
         
-        return new Name(result);
+        return KEY_NAME_POOL.computeIfAbsent(result, Name::new);
     }
     
     /**

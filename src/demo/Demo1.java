@@ -13,6 +13,8 @@ import model.query.QueryOption;
  */
 public class Demo1 {
     static void main(String[] args) {
+        long startTime = System.nanoTime();
+        
         Fund f1 = Fund.of("allowance SGD");
         Fund f2 = Fund.of("Savings MYR");
         Fund f3 = Fund.of("saviNgs sgd");
@@ -115,12 +117,18 @@ public class Demo1 {
             System.out.println("Revision Logic Error: Check your leap years! " + e.getMessage());
         }
         
+        QueryOption q1 = QueryOption.sort(QueryOption.BY_DATE_DESCENDING, QueryOption.BY_AMOUNT);
+        QueryOption q2 = QueryOption.filterAny(QueryOption.cat(Category.of("savingS")),
+                                               QueryOption.max(Amount.of(5, Amount.Currency.SGD)));
+        QueryOption q3 = QueryOption.filterAll(QueryOption.cat(Category.of("savings")));
+        
         for (Fund f : funds) {
             System.out.println(f.getHistory(
-                    QueryOption.sort(QueryOption.BY_DATE_DESCENDING, QueryOption.BY_AMOUNT),
-                    QueryOption.filterAny(QueryOption.cat(Category.of("savingS")),
-                                          QueryOption.max(Amount.of(5, Amount.Currency.SGD)))
             ));
         }
+        
+        
+        long endTime = System.nanoTime();
+        System.out.printf("Total run time: %d ns%n", endTime);
     }
 }
